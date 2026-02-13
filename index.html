@@ -1,0 +1,365 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+<meta charset="UTF-8">
+<meta name="google" content="notranslate">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Booting...</title>
+<link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+:root {
+    --primary-love: #ff4b6e;
+    --glass: rgba(255, 255, 255, 0.15);
+    --glass-border: rgba(255, 255, 255, 0.3);
+}
+
+/* TERMINAL STYLING */
+#terminalScreen {
+    position: fixed; inset: 0; background: #0a0e0a; color: #00ff88;
+    font-family: 'Courier New', monospace; padding: 25px; overflow: hidden;
+    z-index: 2000; transition: all 1.5s ease;
+}
+#matrixBackground {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: -1; opacity: 0.3;
+}
+#terminalOutput { 
+    white-space: pre-wrap; line-height: 1.6; font-size: 11px; height: 85vh; 
+    overflow-y: scroll; text-shadow: 0 0 8px rgba(0, 255, 136, 0.5); 
+    position: relative; z-index: 2001;
+}
+#terminalOutput::-webkit-scrollbar { width: 4px; }
+#terminalOutput::-webkit-scrollbar-thumb { background: #00ff88; border-radius: 10px; }
+
+/* PROPOSAL SCREEN */
+body {
+    margin: 0; font-family: 'Poppins', sans-serif; overflow: hidden;
+    background: linear-gradient(-45deg, #ff758c, #ff7eb3, #fd5e53, #feb47b);
+    background-size: 400% 400%; animation: gradientFlow 15s ease infinite;
+    height: 100vh; width: 100vw;
+}
+@keyframes gradientFlow { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+
+/* FLOATING HEARTS ANIMATION */
+.floating-heart {
+    position: fixed;
+    bottom: -100px;
+    font-size: 24px;
+    pointer-events: none;
+    z-index: 2; /* Ensure they are visible above background */
+    animation: floatUp 6s linear forwards;
+}
+@keyframes floatUp {
+    0% { transform: translateY(0) rotate(0deg); opacity: 0; }
+    10% { opacity: 1; }
+    90% { opacity: 1; }
+    100% { transform: translateY(-120vh) rotate(360deg); opacity: 0; }
+}
+
+.screen { display: none; height: 100vh; flex-direction: column; align-items: center; justify-content: center; opacity: 0; transition: opacity 2s ease; }
+
+.main-card {
+    background: var(--glass); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+    border: 1px solid var(--glass-border); border-radius: 40px; padding: 30px 15px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2); text-align: center; max-width: 90%; z-index: 5;
+}
+
+#imageRow { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; justify-content: center; }
+.imageCard { opacity: 0; transition: all 1s ease; transform: translateY(20px); }
+.imageCard.visible { opacity: 1; transform: translateY(0); }
+.imageCard img { width: 95px; height: 130px; object-fit: cover; border-radius: 15px; border: 2px solid white; box-shadow: 0 5px 15px rgba(0,0,0,0.1); }
+.imageCard p { font-family: 'Great Vibes', cursive; font-size: 22px; color: white; margin-top: 5px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+
+/* Message container - Layer 2: Disable translation on the letter specifically */
+#loveLetter { font-size: 16px; color: white; max-width: 400px; text-align: center; min-height: 50px; line-height: 1.5; font-weight: 300; }
+#question { font-family: 'Great Vibes', cursive; font-size: 34px; color: white; opacity: 0; margin: 15px 0; text-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+
+#buttonGroup { display: flex; gap: 20px; justify-content: center; align-items: center; height: 100px; width: 100%; opacity: 0; }
+
+#yesBtn { 
+    background: white; color: var(--primary-love); padding: 14px 40px; 
+    border-radius: 50px; border: none; font-weight: 600; cursor: pointer;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+    z-index: 10;
+}
+
+#noBtn { 
+    background: rgba(255, 255, 255, 0.2); color: white; border: 1px solid white; 
+    padding: 14px 40px; border-radius: 50px; font-weight: 600;
+    z-index: 9999; 
+    transition: left 0.6s cubic-bezier(0.23, 1, 0.32, 1), top 0.6s cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+.confetti { position: fixed; pointer-events: none; z-index: 1000; will-change: transform; }
+</style>
+</head>
+<body class="notranslate"> <div id="terminalScreen">
+    <canvas id="matrixBackground"></canvas>
+    <div id="terminalOutput"></div>
+</div>
+
+<div class="screen" id="proposalScreen">
+    <audio id="bgMusic" src="music.mp3" loop></audio>
+    <div class="main-card">
+        <div id="imageRow">
+            <div class="imageCard" id="card1"><img src="photos/photo1.jpeg"><p>my love</p></div>
+            <div class="imageCard" id="card2"><img src="photos/photo2.jpg"><p>my jaan</p></div>
+            <div class="imageCard" id="card3"><img src="photos/photo3.jpeg"><p>my qalbi</p></div>
+        </div>
+        <div id="textBlock">
+            <p id="loveLetter"></p>
+            <h1 id="question">Will you be my Valentine? 💍❤️</h1>
+            <div id="buttonGroup">
+                <button id="yesBtn" onclick="sayYes()">YES ❤️</button>
+                <button id="noBtn">NO 🙈</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+/* MATRIX ANIMATION */
+const canvas = document.getElementById('matrixBackground');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+const matrixChars = "LOVE01VALENTINEJAANHEART".split("");
+const fontSize = 14;
+const columns = canvas.width / fontSize;
+const drops = Array(Math.floor(columns)).fill(1);
+
+function drawMatrix() {
+    ctx.fillStyle = "rgba(10, 14, 10, 0.05)";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.fillStyle = "#00ff88";
+    ctx.font = fontSize + "px monospace";
+    for (let i = 0; i < drops.length; i++) {
+        const text = matrixChars[Math.floor(Math.random() * matrixChars.length)];
+        ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+        if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+        drops[i]++;
+    }
+}
+setInterval(drawMatrix, 50);
+
+/* TERMINAL LOGS */
+const logs = [
+    "--- [BOOT] ROMANCE_OS v2.14 ---",
+    "[0x001] Initializing Heartbeat_Monitor.sys...",
+    "[0x002] Calibrating Eye_Contact_Sensitivity...",
+    "[0x003] Loading Shared_Memories_Volume_01...",
+    "[0x004] Analyzing Laughter_Frequencies...",
+    "[0x005] Syncing Soul_Bond_Protocol (v4.0)...",
+    "[0x006] Scanning Smile_Geometry... OPTIMAL",
+    "[0x007] Verifying Chemistry_Parameters... DONE",
+    "[0x008] Mounting Future_Plans.drive...",
+    "[0x009] Checking Trust_Architecture... SECURE",
+    "[0x010] Initializing Eternal_Support_Buffer...",
+    "[0x011] Analyzing Dopamine_Spike_Patterns...",
+    "[0x012] Optimizing Kindess_Algorithm...",
+    "[0x013] Detecting Missing_Person_Signal... FOUND: 'MY_JAAN'",
+    "[0x014] Loading Hug_Warmth_Metadata...",
+    "[0x015] Verifying Loyalty_Hash... MATCHED",
+    "[0x016] Scaling Happiness_Metrics... 100%",
+    "[0x017] Checking Patience_Levels... UNLIMITED",
+    "[0x018] Buffering Romantic_Gestures_v2...",
+    "[0x019] Initializing Morning_Coffee_Module...",
+    "[0x020] Decoding Secret_Language_Protocol...",
+    "[0x021] Mounting Lifetime_Adventure.dmg...",
+    "[0x022] Checking Protection_Firewall... ACTIVE",
+    "[0x023] Syncing Dream_Storage_Cloud...",
+    "[0x024] Analyzing Compatibility_Index... INFINITE",
+    "[0x025] Loading Star_Gazing_Coordinates...",
+    "[0x026] Initializing Home_Feeling.sys...",
+    "[0x027] Scanning Childhood_Stories_Cache...",
+    "[0x028] Verifying Hand_Holding_Grip... FIRM",
+    "[0x029] Optimizing Sunset_Watch_Routine...",
+    "[0x030] Detecting Heart_Synchronization...",
+    "[0x031] Checking Emotional_Intelligence_AI...",
+    "[0x032] Initializing Soulmate_Detection_v9...",
+    "[0x033] Loading Shared_Playlist_Metadata...",
+    "[0x034] Analyzing Inside_Joke_Efficiency...",
+    "[0x035] Mounting Forever_Apartment.volume...",
+    "[0x036] Checking Argument_Resolution_API...",
+    "[0x037] Initializing Forgiveness_Protocol...",
+    "[0x038] Verifying Safe_Place_Security...",
+    "[0x039] Scaling Mutual_Growth_Metric...",
+    "[0x040] Loading Anniversary_Countdown_v1...",
+    "[0x041] Initializing Comfort_Food_Database...",
+    "[0x042] Analyzing Late_Night_Talk_Audio...",
+    "[0x043] Detecting Spark_Frequency... HIGH",
+    "[0x044] Checking Adventure_Spirit_Drive...",
+    "[0x045] Initializing 'Our_Song' Autoplay...",
+    "[0x046] Verifying Future_Wife_Candidate...",
+    "[0x047] Mounting Engagement_Ring_Geometry...",
+    "[0x048] Checking Lifetime_Commitment_Bit...",
+    "[0x049] Analyzing First_Date_Memory_Node...",
+    "[0x050] Syncing Heartbeats (Host <-> Client)..."
+];
+
+for(let i=51; i<=150; i++) {
+    const moods = ["Warmth", "Joy", "Peace", "Passion", "Kindness", "Trust", "Glow", "Spark"];
+    const m = moods[Math.floor(Math.random()*moods.length)];
+    logs.push(`[0x${i.toString(16).toUpperCase()}] Optimizing ${m}_Subroutine_${i}... SUCCESS`);
+}
+
+logs.push(
+    "--------------------------------",
+    "[CRITICAL] VALIDATION_REQUIRED: Valentine_Consent",
+    "[INFO] Directing to Romantic_Interface...",
+    ">>> TAP SCREEN TO OVERRIDE SYSTEM."
+);
+
+const terminal = document.getElementById("terminalOutput");
+let ready = false;
+let yesScale = 1;
+
+function createFloatingHearts() {
+    setInterval(() => {
+        const heart = document.createElement("div");
+        heart.className = "floating-heart";
+        heart.innerHTML = ["❤️", "💖", "💝", "✨", "🌸"][Math.floor(Math.random() * 5)];
+        heart.style.left = Math.random() * 100 + "vw";
+        heart.style.animationDuration = (Math.random() * 3 + 4) + "s";
+        document.body.appendChild(heart);
+        setTimeout(() => heart.remove(), 7000);
+    }, 500);
+}
+
+function startTerminal() {
+    let i = 0;
+    const interval = setInterval(() => {
+        if (i < logs.length) {
+            terminal.innerHTML += logs[i] + "\n";
+            terminal.scrollTop = terminal.scrollHeight;
+            i++;
+        } else { clearInterval(interval); ready = true; }
+    }, 50); 
+}
+
+function transition() {
+    if(!ready) return;
+    document.getElementById("terminalScreen").style.opacity = "0";
+    setTimeout(() => {
+        document.getElementById("terminalScreen").style.display = "none";
+        document.getElementById("proposalScreen").style.display = "flex";
+        createFloatingHearts();
+        setTimeout(() => {
+            document.getElementById("proposalScreen").style.opacity = "1";
+            document.getElementById("bgMusic").play().catch(e => {});
+            runSequence();
+        }, 100);
+    }, 1500);
+}
+
+document.getElementById("terminalScreen").addEventListener("touchstart", transition);
+document.getElementById("terminalScreen").addEventListener("click", transition);
+document.addEventListener("keydown", (e) => e.key.toLowerCase() === 'y' && transition());
+
+function runSequence() {
+    setTimeout(() => document.getElementById('card1').classList.add('visible'), 500);
+    setTimeout(() => document.getElementById('card2').classList.add('visible'), 1500);
+    setTimeout(() => document.getElementById('card3').classList.add('visible'), 2500);
+    setTimeout(() => { 
+        // We wrap the message in a span with translate="no" for extra safety
+        const text = `<span translate="no">In a world of billions, my heart chose you to be its home. You are the answer to every prayer I never knew I had, and I want to spend every sunrise of my life making you feel as loved as you make me feel. You are my greatest blessing, today and for all my tomorrows. ❤️</span>`;
+        let i = 0;
+        let isHTML = false;
+        
+        // This handles the typing while respecting the HTML span tag
+        document.getElementById("loveLetter").innerHTML = text;
+        const fullContent = document.getElementById("loveLetter").textContent;
+        document.getElementById("loveLetter").innerHTML = "";
+        
+        const typing = setInterval(() => {
+            if(i < fullContent.length) { 
+                document.getElementById("loveLetter").innerHTML += fullContent.charAt(i); 
+                i++; 
+            }
+            else { 
+                clearInterval(typing); 
+                document.getElementById("question").style.opacity = "1"; 
+                document.getElementById("buttonGroup").style.opacity = "1";
+                setupNoButton();
+            }
+        }, 40);
+    }, 3500);
+}
+
+function setupNoButton() {
+    const noBtn = document.getElementById("noBtn");
+    const yesBtn = document.getElementById("yesBtn");
+
+    const move = (e) => {
+        if (noBtn.style.position !== "fixed") {
+            const rect = noBtn.getBoundingClientRect();
+            noBtn.style.left = rect.left + "px";
+            noBtn.style.top = rect.top + "px";
+            noBtn.style.position = "fixed";
+            noBtn.style.margin = "0";
+            document.body.appendChild(noBtn);
+        }
+
+        setTimeout(() => {
+            const padding = 80;
+            const maxX = window.innerWidth - noBtn.offsetWidth - padding;
+            const maxY = window.innerHeight - noBtn.offsetHeight - padding;
+            const newX = Math.max(padding, Math.random() * maxX);
+            const newY = Math.max(padding, Math.random() * maxY);
+            noBtn.style.left = newX + "px";
+            noBtn.style.top = newY + "px";
+            yesScale += 0.18;
+            yesBtn.style.transform = `scale(${yesScale})`;
+        }, 10);
+    };
+
+    noBtn.addEventListener("mouseover", move);
+    noBtn.addEventListener("touchstart", (e) => { e.preventDefault(); move(); });
+}
+
+function fireConfetti() {
+    const colors = ['#ff4b6e', '#ffffff', '#ffd700', '#ff85a2', '#00ff88', '#4b9fff'];
+    const shapes = ['50%', '2px']; 
+    for (let i = 0; i < 120; i++) {
+        const c = document.createElement('div');
+        c.className = 'confetti';
+        const isRibbon = Math.random() > 0.8;
+        c.style.width = isRibbon ? (Math.random() * 5 + 3) + 'px' : (Math.random() * 8 + 6) + 'px';
+        c.style.height = isRibbon ? (Math.random() * 15 + 10) + 'px' : (Math.random() * 8 + 6) + 'px';
+        c.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+        c.style.borderRadius = shapes[Math.floor(Math.random() * shapes.length)];
+        c.style.left = '50%';
+        c.style.top = '50%';
+        document.body.appendChild(c);
+        const angle = Math.random() * Math.PI * 2; 
+        const velocity = 15 + Math.random() * 30;  
+        const spread = 20 + Math.random() * 40;    
+        const xOut = Math.cos(angle) * velocity * spread;
+        const yOut = Math.sin(angle) * velocity * spread;
+        const gravity = 400 + Math.random() * 300; 
+        c.animate([
+            { transform: 'translate(-50%, -50%) scale(0) rotateX(0deg) rotateY(0deg)', opacity: 1 },
+            { transform: `translate(${xOut * 0.5}px, ${yOut * 0.5}px) scale(1.2) rotateX(180deg) rotateY(180deg)`, opacity: 1, offset: 0.3 },
+            { transform: `translate(${xOut}px, ${yOut + gravity}px) scale(0.6) rotateX(720deg) rotateY(360deg)`, opacity: 0 }
+        ], { duration: 2500 + Math.random() * 1500, easing: 'cubic-bezier(0.1, 0.8, 0.3, 1)', fill: 'forwards' });
+        setTimeout(() => c.remove(), 4000);
+    }
+}
+
+function sayYes() {
+    const yesBtn = document.getElementById("yesBtn");
+    const noBtn = document.getElementById("noBtn");
+    yesBtn.style.transform = "scale(1)";
+    document.getElementById("question").innerHTML = "I knew you would say YES! ❤ ";
+    if(noBtn) noBtn.remove();
+    document.body.style.background = "#ff4b6e";
+    fireConfetti();
+    setInterval(fireConfetti, 3000);
+}
+
+startTerminal();
+</script>
+</body>
+</html>
