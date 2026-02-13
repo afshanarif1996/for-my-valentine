@@ -239,21 +239,28 @@ function startTerminal() {
     }, 50); 
 }
 
+let hasTransitioned = false;
+
 function transition() {
-    if(!ready) return;
+    if(!ready || hasTransitioned) return;
+
+    hasTransitioned = true;
+
     document.getElementById("terminalScreen").style.opacity = "0";
+
     setTimeout(() => {
         document.getElementById("terminalScreen").style.display = "none";
         document.getElementById("proposalScreen").style.display = "flex";
         createFloatingHearts();
+
         setTimeout(() => {
             document.getElementById("proposalScreen").style.opacity = "1";
             document.getElementById("bgMusic").play().catch(e => {});
             runSequence();
         }, 100);
+
     }, 1500);
 }
-
 document.getElementById("terminalScreen").addEventListener("touchstart", transition);
 document.getElementById("terminalScreen").addEventListener("click", transition);
 document.addEventListener("keydown", (e) => e.key.toLowerCase() === 'y' && transition());
@@ -364,6 +371,7 @@ startTerminal();
 </body>
 
 </html>
+
 
 
 
